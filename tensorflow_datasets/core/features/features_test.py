@@ -45,6 +45,12 @@ class AnInputConnector(features_lib.FeaturesDict):
     # FeaturesDict.get_tensor_info
     return features_lib.TensorInfo(shape=(), dtype=tf.int64)
 
+  def get_serialized_info(self):
+    return {
+        'a': features_lib.TensorInfo(shape=(), dtype=tf.int64),
+        'b': features_lib.TensorInfo(shape=(), dtype=tf.int64),
+    }
+
   def encode_example(self, example_data):
     # Encode take the input data and wrap in in a dict
     return super(AnInputConnector, self).encode_example({
@@ -89,18 +95,19 @@ class FeatureDictTest(testing.FeatureExpectationsTestCase):
             }
         }),
         serialized_info={
-            'input/a':
-                tf.io.FixedLenFeature(shape=(), dtype=tf.int64),
-            'input/b':
-                tf.io.FixedLenFeature(shape=(), dtype=tf.int64),
-            'output':
-                tf.io.FixedLenFeature(shape=(), dtype=tf.float32),
-            'img/size/height':
-                tf.io.FixedLenFeature(shape=(), dtype=tf.int64),
-            'img/size/width':
-                tf.io.FixedLenFeature(shape=(), dtype=tf.int64),
-            'img/metadata/path':
-                tf.io.FixedLenFeature(shape=(), dtype=tf.string),
+            'input': {
+                'a': features_lib.TensorInfo(shape=(), dtype=tf.int64),
+                'b': features_lib.TensorInfo(shape=(), dtype=tf.int64),
+            },
+            'output': features_lib.TensorInfo(shape=(), dtype=tf.float32),
+            'img': {
+                'size': {
+                    'height': features_lib.TensorInfo(shape=(), dtype=tf.int64),
+                    'width': features_lib.TensorInfo(shape=(), dtype=tf.int64),
+                },
+                'metadata/path':
+                    features_lib.TensorInfo(shape=(), dtype=tf.string),
+            }
         },
         dtype={
             'input': tf.int64,
@@ -139,12 +146,18 @@ class FeatureDictTest(testing.FeatureExpectationsTestCase):
                     }
                 },
                 expected_serialized={
-                    'input/a': 2,  # 1 + 1
-                    'input/b': 10,  # 1 * 10
+                    'input': {
+                        'a': 2,  # 1 + 1
+                        'b': 10,  # 1 * 10
+                    },
                     'output': -10.0,  # -1 * 10.0
-                    'img/size/height': 256,
-                    'img/size/width': 128,
-                    'img/metadata/path': 'path/to/xyz.jpg',
+                    'img': {
+                        'size': {
+                            'height': 256,
+                            'width': 128,
+                        },
+                        'metadata/path': 'path/to/xyz.jpg',
+                    }
                 },
                 expected={
                     # a = 1 + 1, b = 1 * 10 => output = a + b = 2 + 10 = 12

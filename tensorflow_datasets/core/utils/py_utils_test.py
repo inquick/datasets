@@ -120,6 +120,28 @@ class PyUtilsTest(testing.TestCase):
         },
     })
 
+  def test_flatten_nest_dict(self):
+
+    nest_d = {
+        'a': 1,
+        'b/c': 2,
+        'b': {
+            'e': 3,
+            'f': {
+                'g': 4
+            },
+        },
+    }
+    flat_d = {
+        'a': 1,
+        'b/c': 2,
+        'b/e': 3,
+        'b/f/g': 4,
+    }
+
+    self.assertEqual(py_utils.flatten_nest_dict(nest_d), flat_d)
+    self.assertEqual(py_utils.pack_as_nest_dict(flat_d, nest_d), nest_d)
+
   def test_tfds_dir(self):
     """Test the proper suffix only, since the prefix can vary."""
     self.assertTrue(py_utils.tfds_dir().endswith('/tensorflow_datasets'))
